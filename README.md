@@ -2,7 +2,7 @@
 
 A minimal, high-performance employee workspace and task management application designed for **HB+**. Built with a unified React Native codebase that runs seamlessly across both **Mobile (Android/iOS)** and **Web (Desktop/Browsers)**.
 
-🌐 **Live Web App (Netlify)**: [https://hbplus.netlify.app](https://hbplus.netlify.app)
+🌐 **Live Web App (Netlify)**: [https://hbplusappp.netlify.app](https://hbplusappp.netlify.app)
 
 ---
 
