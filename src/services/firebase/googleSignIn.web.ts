@@ -3,6 +3,7 @@ import {
   signInWithPopup,
   signOut,
 } from 'firebase/auth';
+import Config from 'react-native-config';
 import { webAuth } from './config.web';
 
 /**
@@ -16,22 +17,26 @@ export const configureGoogleSignIn = () => {
  * Initiate Google Sign-In popup on Web and validate domain.
  */
 export const signInWithGoogle = async () => {
+  const authorizedDomain = (Config.AUTHORIZED_EMAIL_DOMAIN || 'hbplus.fit')
+    .toLowerCase()
+    .trim();
+
   try {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
       prompt: 'select_account',
-      hd: 'silicon.ac.in', // Hint to Google OAuth for Silicon institutional domain
+      hd: authorizedDomain, // Hint to Google OAuth for institutional domain
     });
 
     const userCredential = await signInWithPopup(webAuth, provider);
     const user = userCredential.user;
 
-    // Validate authorized email domain (@silicon.ac.in)
+    // Validate authorized email domain from environment configuration
     const email = user?.email?.toLowerCase().trim() || '';
-    if (!email.endsWith('@silicon.ac.in')) {
+    if (!email.endsWith(`@${authorizedDomain}`)) {
       await signOut(webAuth);
       throw new Error(
-        `Access Restricted:\nOnly institutional email accounts ending with @silicon.ac.in are permitted.\n\nSigned in as: ${email || 'Unknown'}\n\nPlease switch to your @silicon.ac.in account.`
+        `Access Restricted:\nOnly institutional email accounts ending with @${authorizedDomain} are permitted.\n\nSigned in as: ${email || 'Unknown'}\n\nPlease switch to your @${authorizedDomain} account.`
       );
     }
 

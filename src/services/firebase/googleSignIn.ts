@@ -7,9 +7,11 @@ import Config from 'react-native-config';
  */
 export const configureGoogleSignIn = () => {
   try {
-    const webClientId =
-      Config.GOOGLE_WEB_CLIENT_ID ||
-      '205971563897-1ph1o46v3f61jtmq77bmah2c91sbpgjq.apps.googleusercontent.com';
+    const webClientId = Config.GOOGLE_WEB_CLIENT_ID || '';
+
+    if (!webClientId) {
+      console.warn('[GoogleSignin] Warning: GOOGLE_WEB_CLIENT_ID is not defined in environment');
+    }
 
     GoogleSignin.configure({
       webClientId,
@@ -51,13 +53,14 @@ export const signInWithGoogle = async () => {
     const userCredential = await auth().signInWithCredential(googleCredential);
     const user = userCredential.user;
 
-    // Validate authorized email domain (@silicon.ac.in)
+    // Validate authorized email domain from environment configuration
+    const authorizedDomain = (Config.AUTHORIZED_EMAIL_DOMAIN || 'hbplus.fit').toLowerCase().trim();
     const email = user?.email?.toLowerCase().trim() || '';
-    if (!email.endsWith('@silicon.ac.in')) {
+    if (!email.endsWith(`@${authorizedDomain}`)) {
       // Invalidate session immediately
       await signOutGoogle();
       throw new Error(
-        `Access Restricted:\nOnly institutional email accounts ending with @silicon.ac.in are permitted.\n\nSigned in as: ${email || 'Unknown'}\n\nPlease switch to your @silicon.ac.in account.`
+        `Access Restricted:\nOnly institutional email accounts ending with @${authorizedDomain} are permitted.\n\nSigned in as: ${email || 'Unknown'}\n\nPlease switch to your @${authorizedDomain} account.`
       );
     }
 

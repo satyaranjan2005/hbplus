@@ -98,7 +98,16 @@ export default function ProfileScreen({ navigation }: DashboardTabProps<'Profile
 
         {/* Employee Details Card */}
         <View style={styles.infoCard}>
-          <View style={{ alignItems: 'center', marginBottom: 14 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+            <Image
+              source={require('../../assets/images/hbplus-logo.png')}
+              style={{
+                width: moderateScale(24),
+                height: moderateScale(24),
+                marginRight: 8,
+                resizeMode: 'contain',
+              }}
+            />
             <Image
               source={require('../../assets/images/hbplus-wordmark.png')}
               style={[
@@ -123,7 +132,7 @@ export default function ProfileScreen({ navigation }: DashboardTabProps<'Profile
           <View style={styles.infoDivider} />
           <View style={styles.infoRow}>
             <Text style={[styles.infoLabel, { fontSize: font(13) }]}>Affiliation</Text>
-            <Text style={[styles.infoValue, { fontSize: font(13) }]}>Silicon University</Text>
+            <Text style={[styles.infoValue, { fontSize: font(13) }]}>HB+</Text>
           </View>
           <View style={styles.infoDivider} />
           <View style={styles.infoRow}>

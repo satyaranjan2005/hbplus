@@ -1,9 +1,11 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useResponsive } from '../../theme';
+import Config from 'react-native-config';
 
 export default function SettingsScreen() {
   const { width, font, isDesktop } = useResponsive();
+  const domain = (Config.AUTHORIZED_EMAIL_DOMAIN || 'hbplus.fit').toLowerCase().trim();
 
   const settingsGroups = [
     {
@@ -17,7 +19,7 @@ export default function SettingsScreen() {
     {
       title: 'SECURITY & WORKSPACE DOMAIN',
       items: [
-        { label: 'Domain Restriction', value: '@silicon.ac.in Active' },
+        { label: 'Domain Restriction', value: `@${domain} Active` },
         { label: 'Session Management', value: 'Google SSO Verified' },
       ],
     },
@@ -25,7 +27,7 @@ export default function SettingsScreen() {
       title: 'WORKSPACE & ENTERPRISE',
       items: [
         { label: 'Platform Portal', value: 'hbplus.fit Enterprise' },
-        { label: 'Campus Unit', value: 'Silicon University, Bhubaneswar' },
+        { label: 'Campus Unit', value: 'HB+, Bhubaneswar' },
         { label: 'App Version', value: 'v1.0.0 (Build 2026.1)' },
       ],
     },
@@ -72,7 +74,7 @@ export default function SettingsScreen() {
 
         <View style={styles.brandFooter}>
           <Text style={[styles.brandFooterText, { fontSize: font(11) }]}>
-            HB+ Enterprise • Silicon Campus Task & Employee Portal
+            HB+ Enterprise • Task & Employee Portal
           </Text>
         </View>
       </View>

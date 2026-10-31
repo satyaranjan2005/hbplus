@@ -16,11 +16,13 @@ import {
   signInWithGoogle,
 } from '../services/firebase/googleSignIn';
 import { useResponsive } from '../theme';
+import Config from 'react-native-config';
 
 export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'>) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { width, height, font, moderateScale, theme, isSmallScreen, isDesktop } = useResponsive();
+  const domain = (Config.AUTHORIZED_EMAIL_DOMAIN || 'hbplus.fit').toLowerCase().trim();
 
   useEffect(() => {
     configureGoogleSignIn();
@@ -47,6 +49,25 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
+
+      {/* Top Header Title Bar for Web */}
+      {isDesktop && (
+        <View style={styles.webTopHeader}>
+          <View style={styles.webTopHeaderInner}>
+            <View style={styles.webBrandRow}>
+              <Image
+                source={require('../assets/images/hbplus-logo.png')}
+                style={styles.webLogoIcon}
+              />
+              <Text style={styles.webBrandTitle}>HB+ Enterprise</Text>
+            </View>
+            <View style={styles.webBadge}>
+              <Text style={styles.webBadgeText}>Employee Workspace</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -80,7 +101,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
                 },
               ]}
             >
-              Silicon Campus Employee Workspace & Task Management Portal
+              HB+ Employee Workspace & Task Management Portal
             </Text>
 
             {errorMessage ? (
@@ -122,7 +143,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
             </TouchableOpacity>
 
             <Text style={[styles.domainNote, { fontSize: font(12) }]}>
-              Restricted to <Text style={styles.domainHighlight}>@silicon.ac.in</Text> accounts
+              Restricted to <Text style={styles.domainHighlight}>@{domain}</Text> accounts
             </Text>
           </View>
 
@@ -144,6 +165,51 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  webTopHeader: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    alignItems: 'center',
+  },
+  webTopHeaderInner: {
+    width: '100%',
+    maxWidth: 1100,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  webBrandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  webLogoIcon: {
+    width: 28,
+    height: 28,
+    marginRight: 10,
+    resizeMode: 'contain',
+  },
+  webBrandTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    letterSpacing: -0.3,
+  },
+  webBadge: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#DBEAFE',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  webBadgeText: {
+    color: '#2563EB',
+    fontSize: 11,
+    fontWeight: '600',
   },
   scrollContent: {
     flexGrow: 1,

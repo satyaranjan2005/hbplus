@@ -1,97 +1,230 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# HB+ Enterprise Workspace
 
-# Getting Started
+A minimal, high-performance employee workspace and task management application designed for **HB+**. Built with a unified React Native codebase that runs seamlessly across both **Mobile (Android/iOS)** and **Web (Desktop/Browsers)**.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+🌐 **Live Web App (Netlify)**: [https://hbplus.netlify.app](https://hbplus.netlify.app)
 
-## Step 1: Start Metro
+---
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Key Features
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- **Cross-Platform Compatibility**: A single shared codebase powering both the Android mobile application and the desktop web application.
+- **Minimalist Design System**: Clean white surfaces, high-contrast typography, and a modern blue accent palette inspired by [hbplus.fit](https://hbplus.fit).
+- **Responsive Layout**: Dynamically adapts from compact mobile viewports to multi-column desktop dashboards.
+- **Enterprise Task Tracking**: Real-time daily task velocity tracking, priority categorizations, and interactive status workflows.
+- **Zero Emojis**: 100% vector-drawn lightweight UI icons.
+- **Docker & Cloud Ready**: Production-ready `Dockerfile`, `docker-compose.yml`, and `netlify.toml` included.
 
-```sh
-# Using npm
-npm start
+---
 
-# OR using Yarn
-yarn start
+## Setup Instructions
+
+### 1. Prerequisites
+- **Node.js**: `v22.11.0` or higher
+- **npm**: `v10` or higher
+- **Android Studio & SDK**: (Required only for running on Android devices/emulators)
+- **Docker Desktop**: (Optional, for containerized deployments)
+
+---
+
+### 2. Installation
+Clone the repository and install the project dependencies:
+```bash
+git clone <repository-url>
+cd hbplus
+npm install --legacy-peer-deps
 ```
 
-## Step 2: Build and run your app
+---
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+### 3. Environment Configuration
+Copy the template file to create your local `.env`:
+```bash
+cp .env.example .env
+```
+Open `.env` and fill in your Firebase and Google OAuth credentials:
+```env
+APP_NAME=hbplus
+APP_ENV=development
 
-### Android
+# Authorized Email Domain Restriction
+AUTHORIZED_EMAIL_DOMAIN=hbplus.fit
 
-```sh
-# Using npm
-npm run android
+# Google OAuth Web Client ID (from Firebase console)
+GOOGLE_WEB_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
 
-# OR using Yarn
-yarn android
+# Firebase Web Configuration
+FIREBASE_API_KEY=your-firebase-api-key
+FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_STORAGE_BUCKET=your-project-id.firebasestorage.app
+FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+FIREBASE_APP_ID=your-app-id
+
+# Backend API
+API_BASE_URL=https://api.example.com
 ```
 
-### iOS
+---
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+### 4. Running the Application
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+#### A. Web Browser (Desktop / Local)
+Starts the Webpack development server with hot module replacement:
+```bash
+npm run web
+```
+Open **`http://localhost:3000`** in your browser.
 
-```sh
-bundle install
+#### B. Android Device / Emulator
+1. Start the Metro bundler:
+   ```bash
+   npm run start
+   ```
+2. In a separate terminal, compile and launch the Android APK:
+   ```bash
+   npm run android
+   ```
+
+#### C. Docker (Production Nginx)
+To build and run the web app in an isolated Nginx container:
+```bash
+docker compose up --build
+```
+Access the application at **`http://localhost:3000`**.
+
+#### D. Production Web Build (for Netlify / Static Hosting)
+```bash
+npm run build:web
+```
+Generates the optimized static production bundle in the `dist/` directory.
+
+- **Netlify Link**: [https://hbplusappp.netlify.app](https://hbplusappp.netlify.app)
+
+---
+
+## Authentication Flow
+
+The application uses **Google Sign-In with Firebase Authentication** tailored specifically for each platform without code duplication:
+
+```
+                  ┌────────────────────────┐
+                  │   User Clicks Login    │
+                  └───────────┬────────────┘
+                              │
+             ┌────────────────┴────────────────┐
+             ▼                                 ▼
+      📱 Android Mobile                 🌐 Web Browser
+   Google Play Services Dialog       Firebase Popup Window
+             │                                 │
+             └────────────────┬────────────────┘
+                              │
+                              ▼
+                 Receive Google ID Token
+                              │
+                              ▼
+           Authenticate with Firebase Backend
+                              │
+                              ▼
+             Verify Authorized Email Domain
+            (ends with @AUTHORIZED_EMAIL_DOMAIN)
+                    /                   \
+            [Authorized]             [Unauthorized]
+                 │                          │
+                 ▼                          ▼
+         Route to Dashboard         1. Invalidate Session
+                                    2. Auto-Sign Out
+                                    3. Display Access Notice
 ```
 
-Then, and every time you update your native dependencies, run:
+1. **Mobile Platform (`googleSignIn.ts`)**:
+   - Triggers the native Android Google Play Services account picker via `@react-native-google-signin/google-signin`.
+   - Obtains the Google `idToken` and creates a Firebase credential with `auth.GoogleAuthProvider.credential(idToken)`.
+   - Authenticates the user with Firebase native SDK (`@react-native-firebase/auth`).
 
-```sh
-bundle exec pod install
+2. **Web Platform (`googleSignIn.web.ts`)**:
+   - Automatically aliased by Webpack when running on the web.
+   - Launches a standard browser popup using Firebase Web SDK's `signInWithPopup(webAuth, provider)`.
+   - Passes the `hd` parameter to hint Google OAuth toward institutional accounts.
+
+3. **Session Persistence**:
+   - Handled automatically via `subscribeToAuthChanges` (`onAuthStateChanged`). Returning users with valid sessions bypass the login screen and are directed straight to the dashboard.
+
+---
+
+## How Domain Restriction Works
+
+The application implements a strict **multi-layer domain gate** ensuring that only users with authorized institutional email addresses (`@hbplus.fit`) can access the workspace:
+
+### Layer 1: OAuth Domain Hinting (Web)
+When the Google Sign-In popup opens on the web, the parameter `hd: Config.AUTHORIZED_EMAIL_DOMAIN` is passed to the Google OAuth provider. This prioritizes institutional accounts in the Google account selection list.
+
+### Layer 2: Post-Authentication Validation
+Immediately upon receiving credentials from Google, the user's email is evaluated:
+```typescript
+const authorizedDomain = (Config.AUTHORIZED_EMAIL_DOMAIN || 'hbplus.fit').toLowerCase().trim();
+const email = user?.email?.toLowerCase().trim() || '';
+
+if (!email.endsWith(`@${authorizedDomain}`)) {
+  // Immediately invalidate the session
+  await signOutGoogle();
+  throw new Error(
+    `Access Restricted:\nOnly institutional email accounts ending with @${authorizedDomain} are permitted.`
+  );
+}
+```
+If an unauthorized email (e.g. `@gmail.com`) is selected, the application:
+1. Immediately triggers an automatic sign-out.
+2. Clears local and backend auth state.
+3. Throws a user-friendly error instructing the user to switch to their authorized account.
+
+### Layer 3: App Launch & Session Guard (`StackNavigation.tsx`)
+On cold start or when resuming from background, the navigation stack evaluates the persisted session:
+```typescript
+const unsubscribe = subscribeToAuthChanges(async (currentUser) => {
+  if (currentUser) {
+    const email = currentUser.email?.toLowerCase().trim() || '';
+    if (!email.endsWith(`@${authorizedDomain}`)) {
+      await signOutGoogle();
+      setUser(null);
+      return;
+    }
+  }
+  setUser(currentUser);
+});
+```
+Even if a token is manually forged or cached from an unauthorized account, the session guard instantly revokes the token and locks the route to the Login screen.
+
+---
+
+## Project Structure
+
+```
+hbplus/
+├── android/                  # Native Android configuration & Gradle build
+├── public/                   # Web template (index.html, favicon.png)
+├── src/
+│   ├── assets/images/        # Official HB+ logos and wordmark assets
+│   ├── components/           # Reusable components (Icons, ErrorBoundary)
+│   ├── navigation/           # Stack & Tab navigators
+│   ├── screens/              # UI screens
+│   │   ├── LoginScreen.tsx   # Google Sign-In & Auth entry
+│   │   └── dashboard/        # Workspace Overview, Analytics, Profile, Settings
+│   ├── services/
+│   │   ├── firebase/         # Firebase auth & Google Sign-In (Mobile + Web)
+│   │   └── config.web.shim.ts# Environment shim for Webpack builds
+│   ├── theme/                # Central responsive design tokens & scaling utilities
+│   └── types/                # TypeScript navigation & state types
+├── App.tsx                   # Application root with ErrorBoundary & SafeAreas
+├── Dockerfile                # Multi-stage Docker build (Node.js + Nginx)
+├── docker-compose.yml        # Docker Compose service definition
+├── netlify.toml              # Netlify continuous deployment & SPA redirects
+├── webpack.config.js         # Webpack 5 bundler configuration for React Native Web
+└── package.json              # Project dependencies & run scripts
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+---
 
-```sh
-# Using npm
-npm run ios
+## License
 
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Private and confidential. Developed for **HB+**. All rights reserved.

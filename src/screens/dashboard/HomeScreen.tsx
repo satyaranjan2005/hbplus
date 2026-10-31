@@ -238,13 +238,24 @@ export default function HomeScreen() {
         {/* Top Welcome Banner */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
-            <Image
-              source={require('../../assets/images/hbplus-wordmark.png')}
-              style={[
-                styles.brandWordmark,
-                { width: moderateScale(95), height: moderateScale(22) },
-              ]}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Image
+                source={require('../../assets/images/hbplus-logo.png')}
+                style={{
+                  width: moderateScale(26),
+                  height: moderateScale(26),
+                  marginRight: 8,
+                  resizeMode: 'contain',
+                }}
+              />
+              <Image
+                source={require('../../assets/images/hbplus-wordmark.png')}
+                style={[
+                  styles.brandWordmark,
+                  { width: moderateScale(95), height: moderateScale(22), marginBottom: 0 },
+                ]}
+              />
+            </View>
             <Text style={[styles.greetingText, { fontSize: font(11) }]}>
               WORKPLACE PORTAL
             </Text>
@@ -261,7 +272,7 @@ export default function HomeScreen() {
           <View style={styles.statusBadge}>
             <View style={styles.greenDot} />
             <Text style={[styles.statusText, { fontSize: font(11) }]}>
-              On Duty • Campus
+              On Duty • HB+
             </Text>
           </View>
         </View>

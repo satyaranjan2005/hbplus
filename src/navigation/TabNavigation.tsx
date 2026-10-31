@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Image, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from '../screens/dashboard/HomeScreen';
@@ -28,6 +28,17 @@ export default function TabNavigation() {
     <Tab.Navigator
       screenOptions={{
         headerTitleAlign: isDesktop ? 'left' : 'center',
+        headerLeft: () => (
+          <Image
+            source={require('../assets/images/hbplus-logo.png')}
+            style={{
+              width: 28,
+              height: 28,
+              marginLeft: 16,
+              resizeMode: 'contain',
+            }}
+          />
+        ),
         headerStyle: {
           backgroundColor: '#FFFFFF',
           elevation: 0,

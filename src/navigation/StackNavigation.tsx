@@ -6,12 +6,16 @@ import TabNavigation from './TabNavigation';
 import type { RootStackParamList } from '../types/navigation';
 import { subscribeToAuthChanges, getCurrentUser } from '../services/firebase/auth';
 import { signOutGoogle } from '../services/firebase/googleSignIn';
+import Config from 'react-native-config';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function StackNavigation() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(getCurrentUser());
+  const authorizedDomain = (Config.AUTHORIZED_EMAIL_DOMAIN || 'hbplus.fit')
+    .toLowerCase()
+    .trim();
 
   useEffect(() => {
     let isMounted = true;
@@ -20,7 +24,7 @@ export default function StackNavigation() {
       try {
         if (currentUser) {
           const email = currentUser.email?.toLowerCase().trim() || '';
-          if (!email.endsWith('@silicon.ac.in')) {
+          if (!email.endsWith(`@${authorizedDomain}`)) {
             await signOutGoogle();
             if (isMounted) setUser(null);
             if (isMounted && initializing) setInitializing(false);
