@@ -4,6 +4,7 @@ import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigat
 
 export type DashboardTabParamList = {
   Home: undefined;
+  Analytics: undefined;
   Profile: undefined;
   Settings: undefined;
 };

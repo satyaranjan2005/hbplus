@@ -3,148 +3,157 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
+import { useResponsive } from '../../theme';
 
 export default function AnalyticsScreen() {
-  const isDark = useColorScheme() === 'dark';
+  const { width, font, moderateScale, isDesktop } = useResponsive();
 
-  const theme = {
-    bg: isDark ? '#0F172A' : '#F8FAFC',
-    card: isDark ? '#1E293B' : '#FFFFFF',
-    textPrimary: isDark ? '#F8FAFC' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#64748B',
-    border: isDark ? '#334155' : '#E2E8F0',
-  };
-
-  const trafficChannels = [
-    { name: 'Organic Search', percentage: 48, visitors: '14.2k', color: '#4F46E5' },
-    { name: 'Direct Traffic', percentage: 28, visitors: '8.3k', color: '#06B6D4' },
-    { name: 'Referral & Affiliates', percentage: 14, visitors: '4.1k', color: '#10B981' },
-    { name: 'Social Campaigns', percentage: 10, visitors: '2.9k', color: '#F59E0B' },
+  const departmentWorkload = [
+    { name: 'Engineering & Mobile Dev', percentage: 42, value: '28 tasks', color: '#2563EB' },
+    { name: 'Campus Operations & Support', percentage: 26, value: '18 tasks', color: '#0284C7' },
+    { name: 'Product Quality & Security', percentage: 18, value: '12 tasks', color: '#4F46E5' },
+    { name: 'Employee Wellness & Admin', percentage: 14, value: '9 tasks', color: '#16A34A' },
   ];
 
-  const weeklyData = [
-    { day: 'Mon', value: 65 },
-    { day: 'Tue', value: 82 },
-    { day: 'Wed', value: 45 },
-    { day: 'Thu', value: 95 },
-    { day: 'Fri', value: 75 },
-    { day: 'Sat', value: 50 },
-    { day: 'Sun', value: 60 },
+  const weeklyTaskThroughput = [
+    { day: 'Mon', completed: 6, target: 8 },
+    { day: 'Tue', completed: 9, target: 8 },
+    { day: 'Wed', completed: 8, target: 8 },
+    { day: 'Thu', completed: 11, target: 8 },
+    { day: 'Fri', completed: 8, target: 8 },
+    { day: 'Sat', completed: 4, target: 8 },
+    { day: 'Sun', completed: 2, target: 8 },
   ];
+
+  const maxTaskVal = 12;
+  const containerPadding = isDesktop ? 32 : Math.min(28, Math.max(16, width * 0.045));
+  const chartHeight = isDesktop ? 180 : Math.min(200, Math.max(130, moderateScale(150)));
+  const contentWidth = isDesktop ? Math.min(1100, width - 64) : width - containerPadding * 2;
+  const chartAvailableWidth = isDesktop ? contentWidth * 0.55 - 40 : contentWidth - 40;
+  const barTrackWidth = Math.max(16, Math.min(36, Math.floor(chartAvailableWidth / 7 - 10)));
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: theme.bg }]}
-      contentContainerStyle={styles.content}
+      style={styles.container}
+      contentContainerStyle={[styles.content, { padding: containerPadding }]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Title */}
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>
-          Performance & Analytics
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          Real-time metrics, traffic insights, and conversion rates
-        </Text>
-      </View>
+      <View style={styles.maxContainer}>
+        {/* Title */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { fontSize: font(isDesktop ? 26 : 22) }]}>
+            Task & Team Analytics
+          </Text>
+          <Text style={[styles.subtitle, { fontSize: font(13) }]}>
+            Employee sprint velocity, task turnaround, and project workload
+          </Text>
+        </View>
 
-      {/* Bar Chart Overview */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: theme.card, borderColor: theme.border },
-        ]}
-      >
-        <View style={styles.chartHeader}>
-          <View>
-            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              Weekly Activity
-            </Text>
-            <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-              Average +22% vs last week
-            </Text>
+        {/* KPI Overview Grid */}
+        <View style={styles.kpiRow}>
+          <View style={styles.kpiCard}>
+            <Text style={[styles.kpiLabel, { fontSize: font(10) }]}>SPRINT VELOCITY</Text>
+            <Text style={[styles.kpiValue, { fontSize: font(24) }]}>48 pts</Text>
+            <Text style={[styles.kpiBadge, { fontSize: font(11) }]}>+14% vs last sprint</Text>
           </View>
-          <View style={styles.growthBadge}>
-            <Text style={styles.growthBadgeText}>+22%</Text>
+          <View style={styles.kpiCard}>
+            <Text style={[styles.kpiLabel, { fontSize: font(10) }]}>AVG TURNAROUND</Text>
+            <Text style={[styles.kpiValue, { fontSize: font(24) }]}>1.4 days</Text>
+            <Text style={[styles.kpiBadge, { fontSize: font(11) }]}>Target Met</Text>
           </View>
         </View>
 
-        {/* Custom Native Bar Representation */}
-        <View style={styles.barChartContainer}>
-          {weeklyData.map((item, index) => (
-            <View key={index} style={styles.barColumn}>
-              <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      height: `${item.value}%`,
-                      backgroundColor:
-                        item.value >= 80 ? '#4F46E5' : '#818CF8',
-                    },
-                  ]}
-                />
+        {/* Desktop Web: Side-by-Side Analytics Grid */}
+        <View style={[styles.analyticsGrid, isDesktop && styles.analyticsGridDesktop]}>
+          {/* Weekly Throughput Bar Chart */}
+          <View style={[styles.card, isDesktop && styles.cardDesktopHalf]}>
+            <View style={styles.chartHeader}>
+              <View style={styles.chartTitleCol}>
+                <Text style={[styles.cardTitle, { fontSize: font(16) }]}>
+                  Daily Task Throughput
+                </Text>
+                <Text style={[styles.cardSubtitle, { fontSize: font(12) }]}>
+                  Target: 8 tasks resolved / day
+                </Text>
               </View>
-              <Text style={[styles.barLabel, { color: theme.textSecondary }]}>
-                {item.day}
-              </Text>
+              <View style={styles.growthBadge}>
+                <Text style={[styles.growthBadgeText, { fontSize: font(11) }]}>
+                  92% EFFICIENCY
+                </Text>
+              </View>
             </View>
-          ))}
-        </View>
-      </View>
 
-      {/* Traffic Sources */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: theme.card, borderColor: theme.border },
-        ]}
-      >
-        <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-          Traffic Acquisition
-        </Text>
-        <Text
-          style={[
-            styles.cardSubtitle,
-            { color: theme.textSecondary, marginBottom: 18 },
-          ]}
-        >
-          Top channels contributing to user engagement
-        </Text>
+            {/* Custom Bar Chart */}
+            <View style={[styles.barChartContainer, { height: chartHeight + 32 }]}>
+              {weeklyTaskThroughput.map((item, index) => {
+                const heightPercent = Math.min(100, Math.round((item.completed / maxTaskVal) * 100));
+                const isMet = item.completed >= item.target;
 
-        {trafficChannels.map((channel, i) => (
-          <View key={i} style={styles.channelRow}>
-            <View style={styles.channelMeta}>
-              <View
-                style={[styles.channelColorDot, { backgroundColor: channel.color }]}
-              />
-              <Text
-                style={[styles.channelName, { color: theme.textPrimary }]}
-              >
-                {channel.name}
-              </Text>
-              <Text
-                style={[styles.channelVisitors, { color: theme.textSecondary }]}
-              >
-                {channel.visitors} ({channel.percentage}%)
-              </Text>
-            </View>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${channel.percentage}%`,
-                    backgroundColor: channel.color,
-                  },
-                ]}
-              />
+                return (
+                  <View key={index} style={styles.barColumn}>
+                    <View style={[styles.barTrack, { height: chartHeight, width: barTrackWidth }]}>
+                      <View
+                        style={[
+                          styles.barFill,
+                          {
+                            height: `${heightPercent}%`,
+                            backgroundColor: isMet ? '#2563EB' : '#93C5FD',
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.barLabel,
+                        { fontSize: font(11) },
+                        isMet && styles.barLabelActive,
+                      ]}
+                    >
+                      {item.day}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
           </View>
-        ))}
+
+          {/* Department Workload Distribution */}
+          <View style={[styles.card, isDesktop && styles.cardDesktopHalf]}>
+            <Text style={[styles.cardTitle, { fontSize: font(16) }]}>
+              Department Workload
+            </Text>
+            <Text style={[styles.cardSubtitle, { fontSize: font(12), marginBottom: 18 }]}>
+              Current task allocation across team units
+            </Text>
+
+            {departmentWorkload.map((dept, i) => (
+              <View key={i} style={styles.channelRow}>
+                <View style={styles.channelMeta}>
+                  <View style={[styles.channelColorDot, { backgroundColor: dept.color }]} />
+                  <Text style={[styles.channelName, { fontSize: font(13) }]}>
+                    {dept.name}
+                  </Text>
+                  <Text style={[styles.channelVisitors, { fontSize: font(12) }]}>
+                    {dept.value} ({dept.percentage}%)
+                  </Text>
+                </View>
+                <View style={styles.progressTrack}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        width: `${dept.percentage}%`,
+                        backgroundColor: dept.color,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
@@ -153,27 +162,75 @@ export default function AnalyticsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   content: {
-    padding: 18,
-    paddingBottom: 32,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+  maxContainer: {
+    width: '100%',
+    maxWidth: 1100,
   },
   header: {
     marginBottom: 20,
   },
   title: {
-    fontSize: 22,
     fontWeight: '800',
+    color: '#1A1A1A',
     marginBottom: 4,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 13,
+    color: '#858585',
+  },
+  kpiRow: {
+    flexDirection: 'row',
+    gap: 14,
+    marginBottom: 20,
+  },
+  kpiCard: {
+    flex: 1,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 14,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
+  },
+  kpiLabel: {
+    color: '#2563EB',
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
+  kpiValue: {
+    fontWeight: '800',
+    color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  kpiBadge: {
+    color: '#16A34A',
+    fontWeight: '600',
+  },
+  analyticsGrid: {
+    width: '100%',
+  },
+  analyticsGridDesktop: {
+    flexDirection: 'row',
+    gap: 20,
+    alignItems: 'stretch',
   },
   card: {
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 18,
+    borderColor: '#EEEEEE',
+    backgroundColor: '#FAFAFA',
+    padding: 20,
     marginBottom: 18,
+  },
+  cardDesktopHalf: {
+    flex: 1,
+    marginBottom: 0,
   },
   chartHeader: {
     flexDirection: 'row',
@@ -181,53 +238,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  chartTitleCol: {
+    flex: 1,
+    marginRight: 8,
+  },
   cardTitle: {
-    fontSize: 16,
     fontWeight: '700',
+    color: '#1A1A1A',
     marginBottom: 2,
   },
   cardSubtitle: {
-    fontSize: 12,
+    color: '#858585',
   },
   growthBadge: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
   },
   growthBadgeText: {
-    color: '#15803D',
+    color: '#2563EB',
     fontWeight: '700',
-    fontSize: 12,
   },
   barChartContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    height: 160,
     paddingTop: 10,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
   barColumn: {
     alignItems: 'center',
     flex: 1,
   },
   barTrack: {
-    height: 120,
-    width: 24,
-    backgroundColor: '#EEF2FF',
-    borderRadius: 8,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 6,
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },
   barFill: {
     width: '100%',
-    borderRadius: 8,
+    borderRadius: 6,
   },
   barLabel: {
     marginTop: 8,
-    fontSize: 11,
     fontWeight: '600',
+    color: '#858585',
+  },
+  barLabelActive: {
+    color: '#2563EB',
+    fontWeight: '700',
   },
   channelRow: {
     marginBottom: 16,
@@ -244,21 +307,21 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   channelName: {
-    fontSize: 13,
     fontWeight: '600',
+    color: '#1A1A1A',
     flex: 1,
   },
   channelVisitors: {
-    fontSize: 12,
+    color: '#858585',
   },
   progressTrack: {
-    height: 8,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
   },
 });
